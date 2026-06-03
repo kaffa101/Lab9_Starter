@@ -6,6 +6,13 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lab 9</title>
+  <script src="https://cdn.trackjs.com/agent/v3/latest/t.js"></script>
+  <script>
+  window.TrackJS && TrackJS.install({ 
+    token: "c0ee3c59f425460a86f6a077697ab787",
+    application: "lab9"
+  });
+  </script>
 
   <style>
     button {
@@ -83,6 +90,7 @@
       <button>Start Timer</button>
       <button>End Timer</button>
       <button>Console Trace</button>
+      <button>Try/Catch Demo</button>
       <button>Trigger a Global Error</button>
     </section>
   </main>
@@ -102,6 +110,160 @@
 
     // Start your code here
     // You may move this JS to another file if you wish
+
+    const demoObject = {
+      name: 'Console Demo',
+      type: 'example',
+      count: 3,
+      valid: true,
+      nested: {
+        text: 'hello',
+        flag: false,
+      },
+    };
+
+    const demoArray = [
+      { name: 'Powell', score: 100, issued: true },
+      { name: 'Team 19', score: 95, issued: false },
+      { name: 'Steen', score: 93, issued: true },
+    ];
+
+    const timerLabel = 'demo-timer';
+
+    function consoleTraceDemo() {
+      console.log('Entering trace helper');
+      consoleTraceInner();
+    }
+
+    function consoleTraceInner() {
+      console.trace('Console Trace Demo');
+    }
+
+    class ValidationError extends Error {
+      constructor(message, field) {
+        super(message);
+        this.name = 'ValidationError';
+        this.field = field; 
+      }
+    }
+
+    class DivisionByZeroError extends ValidationError {
+      constructor() {
+        super('Cannot divide by zero', 'second-num');
+        this.name = 'DivisionByZeroError';
+      }
+    }
+
+    window.onerror = function (message, source, lineno, colno, error) {
+      console.error('window.onerror caught a global error:');
+      console.log('  message:', message);
+      console.log('  source: ', source);
+      console.log('  line:   ', lineno, '  col:', colno);
+      console.dir(error);
+
+
+      return true; 
+    };
+
+    function handleConsoleAction(action) {
+      switch (action) {
+        case 'Console Log':
+          console.log('Console Log Demo:', demoObject, demoArray);
+          break;
+        case 'Console Error':
+          console.error('Console Error Demo: this is an error message');
+          break;
+        case 'Console Count':
+          console.count('demoCounter');
+          break;
+        case 'Console Warn':
+          console.warn('Console Warn Demo: please check the values');
+          break;
+        case 'Console Assert':
+          console.assert(demoObject.count === 5, 'Console Assert Demo: count is not 5');
+          break;
+        case 'Console Clear':
+          console.clear();
+          break;
+        case 'Console Dir':
+          console.dir(demoObject);
+          break;
+        case 'Console dirxml':
+          console.dirxml(document.querySelector('main'));
+          break;
+        case 'Console Group Start':
+          console.group('Console Group Demo');
+          console.log('Inside group: first message');
+          console.log('Inside group: second message');
+          break;
+        case 'Console Group End':
+          console.groupEnd();
+          break;
+        case 'Console Table':
+          console.table(demoArray);
+          break;
+        case 'Start Timer':
+          console.time(timerLabel);
+          console.log('Timer started');
+          break;
+        case 'End Timer':
+          console.timeEnd(timerLabel);
+          break;
+        case 'Console Trace':
+          consoleTraceDemo();
+          break;
+        case 'Try/Catch Demo':
+          try {
+            const firstInput = document.querySelector('#first-num');
+            const secondInput = document.querySelector('#second-num');
+
+            if (!firstInput || !secondInput) {
+              throw new TypeError('A required calculator input is missing from the DOM');
+            }
+
+            const a = parseFloat(firstInput.value);
+            const b = parseFloat(secondInput.value);
+
+            if (isNaN(a) || isNaN(b)) {
+              throw new ValidationError('Both calculator inputs must contain valid numbers', 'first-num');
+            }
+
+            if (b === 0) {
+              throw new DivisionByZeroError();
+            }
+
+            const divResult = a / b;
+            console.log(`Try/Catch Demo: ${a} / ${b} = ${divResult}`);
+          } catch (err) {
+            if (err instanceof DivisionByZeroError) {
+              // Most specific subclass checked first
+              console.error(`[${err.name}] field="${err.field}" — ${err.message}`);
+            } else if (err instanceof ValidationError) {
+              console.error(`[${err.name}] field="${err.field}" — ${err.message}`);
+            } else {
+              console.error('Unexpected error:', err.message);
+            }
+          } finally {
+            console.log('Try/Catch Demo: finally block ran — operation complete regardless of outcome');
+          }
+          break;
+        case 'Trigger a Global Error':
+
+          setTimeout(() => {
+            throw new ValidationError('This error was not caught — handled by the global error listener', 'demo');
+          }, 0);
+          break;
+        default:
+          break;
+      }
+    }
+
+    errorBtns.forEach(button => {
+      button.addEventListener('click', event => {
+        event.preventDefault();
+        handleConsoleAction(button.textContent.trim());
+      });
+    });
   </script>
 </body>
 
